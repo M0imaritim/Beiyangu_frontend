@@ -8,7 +8,7 @@ import {
 } from "@/types/auth";
 
 // Make sure this points to your Railway backend
-const API_BASE_URL = process.env.BACKEND_API_URL || "http://localhost:8000/api";
+const API_BASE_URL = process.env.BACKEND_API_URL;
 
 console.log("API_BASE_URL:", API_BASE_URL); // Debug log to verify URL
 
