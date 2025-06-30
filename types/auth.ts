@@ -27,6 +27,7 @@ export interface AuthResponse {
   };
   message?: string;
   error?: string;
+  details?: any;
 }
 
 export interface ApiResponse<T = any> {
