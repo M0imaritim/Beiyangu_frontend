@@ -5,11 +5,16 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { LoginCredentials } from "@/types/auth";
+
+// Update the LoginCredentials type to use email
+interface LoginCredentials {
+  email: string;
+  password: string;
+}
 
 export default function LoginPage() {
   const [credentials, setCredentials] = useState<LoginCredentials>({
-    username: "",
+    email: "", // Changed from username to email
     password: "",
   });
   const [error, setError] = useState("");
@@ -74,20 +79,20 @@ export default function LoginPage() {
           <div className="space-y-4">
             <div>
               <label
-                htmlFor="username"
+                htmlFor="email"
                 className="block text-sm font-medium text-gray-700"
               >
-                Username
+                Email Address
               </label>
               <input
-                id="username"
-                name="username"
-                type="text"
+                id="email"
+                name="email" // Changed from username to email
+                type="email" // Changed from text to email
                 required
-                value={credentials.username}
+                value={credentials.email} // Changed from username to email
                 onChange={handleChange}
                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Enter your username"
+                placeholder="Enter your email address" // Updated placeholder
               />
             </div>
 
