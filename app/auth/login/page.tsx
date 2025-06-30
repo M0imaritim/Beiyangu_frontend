@@ -38,6 +38,7 @@ export default function LoginPage() {
         setError(result.error || "Login failed");
       }
     } catch (err) {
+      console.error(err);
       setError("An unexpected error occurred");
     } finally {
       setLoading(false);

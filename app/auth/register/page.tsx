@@ -47,6 +47,7 @@ export default function RegisterPage() {
         setError(result.error || "Registration failed");
       }
     } catch (err) {
+      console.error(err);
       setError("An unexpected error occurred");
     } finally {
       setLoading(false);
