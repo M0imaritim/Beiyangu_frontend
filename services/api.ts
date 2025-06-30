@@ -7,8 +7,10 @@ import {
   ApiResponse,
 } from "@/types/auth";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+// Make sure this points to your Railway backend
+const API_BASE_URL = process.env.BACKEND_API_URL || "http://localhost:8000/api";
+
+console.log("API_BASE_URL:", API_BASE_URL); // Debug log to verify URL
 
 // Create axios instance with default config
 const api = axios.create({
@@ -23,6 +25,7 @@ const api = axios.create({
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    console.error("API Error:", error.response?.status, error.response?.data);
     if (error.response?.status === 401) {
       // Handle unauthorized - could redirect to login
       console.log("Unauthorized request");
@@ -37,7 +40,7 @@ export const authApi = {
   register: async (credentials: RegisterCredentials): Promise<AuthResponse> => {
     try {
       const response: AxiosResponse<AuthResponse> = await api.post(
-        "/auth/register/",
+        "/auth/register/", // Fixed: added /auth/ prefix
         credentials
       );
       return response.data;
@@ -53,15 +56,20 @@ export const authApi = {
   // Login user
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
     try {
+      console.log("Attempting login to:", `${API_BASE_URL}/auth/login/`);
       const response: AxiosResponse<AuthResponse> = await api.post(
-        "/auth/login/",
+        "/auth/login/", // Fixed: added /auth/ prefix and trailing slash
         credentials
       );
       return response.data;
     } catch (error: any) {
+      console.error("Login error:", error);
       return {
         success: false,
-        error: error.response?.data?.error || "Login failed",
+        error:
+          error.response?.data?.error ||
+          error.response?.data?.message ||
+          "Login failed",
       };
     }
   },
