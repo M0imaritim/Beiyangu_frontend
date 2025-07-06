@@ -1,4 +1,3 @@
-// src/components/auth/ProtectedRoute.tsx
 "use client";
 
 import { useAuth } from "@/context/AuthContext";
@@ -26,8 +25,16 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Show loading spinner while checking auth
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="flex flex-col items-center space-y-4">
+          {/* Custom spinner */}
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-gray-200 rounded-full animate-spin"></div>
+            <div className="absolute top-0 left-0 w-16 h-16 border-4 border-[#B38B59] border-t-transparent rounded-full animate-spin"></div>
+          </div>
+          {/* Loading text */}
+          <div className="text-[#113E21] font-medium">Loading...</div>
+        </div>
       </div>
     );
   }

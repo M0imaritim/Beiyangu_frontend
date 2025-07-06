@@ -1,0 +1,307 @@
+# 🎨 Beiyangu Frontend Context - Quick Reference
+
+## 🎯 PROJECT OVERVIEW
+
+**Reverse marketplace** where buyers post requests and sellers bid on them.
+**Stack**: Next.js 14+ | TypeScript | TailwindCSS | JWT Auth
+
+## 🎨 BRAND COLORS
+
+```css
+/* Primary Colors */
+--primary-gold: #b38b59; /* Buttons, links, accents */
+--primary-green: #113e21; /* Headers, nav, text */
+--neutral-light: #f0f0f0; /* Backgrounds */
+--pure-white: #fefefe; /* Cards, content */
+
+/* Usage */
+--text-primary: #113e21; /* Main headings */
+--text-secondary: #333333; /* Body text */
+--text-muted: #888888; /* Helper text */
+--border-subtle: #f0f0f0; /* Borders */
+```
+
+## 🏗️ PROJECT STRUCTURE
+
+```
+app/
+├── auth/           # Login/register pages
+├── dashboard/      # User dashboards
+├── requests/       # Request CRUD
+├── bids/          # Bid management
+├── profile/       # User profile
+└── globals.css    # Global styles
+
+components/
+├── ui/            # Reusable components (Button, Input, Card, Modal)
+├── auth/          # Auth forms, guards
+├── layout/        # Header, nav, footer
+├── requests/      # Request components
+├── bids/          # Bid components
+└── common/        # Error, loading, empty states
+
+context/
+├── AuthContext.tsx
+├── RequestContext.tsx
+└── NotificationContext.tsx
+
+services/
+└── api.ts         # API service layer
+
+types/
+├── auth.ts
+├── request.ts
+└── bid.ts
+```
+
+## 🔐 AUTH SYSTEM
+
+```typescript
+// AuthContext structure
+interface AuthContextType {
+  user: User | null;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  register: (userData: RegisterData) => Promise<void>;
+  logout: () => void;
+  isAuthenticated: boolean;
+}
+
+// User interface
+interface User {
+  id: string;
+  email: string;
+  username: string;
+  bio?: string;
+  avatar?: string;
+  role: "buyer" | "seller" | "both";
+}
+```
+
+## 🎨 CORE COMPONENTS
+
+### Button
+
+```typescript
+interface ButtonProps {
+  variant: 'primary' | 'secondary' | 'outline' | 'ghost';
+  size: 'sm' | 'md' | 'lg';
+  loading?: boolean;
+}
+
+// Usage
+<Button variant="primary">Submit</Button>
+<Button variant="outline" loading>Processing...</Button>
+```
+
+### Input
+
+```typescript
+interface InputProps {
+  label?: string;
+  error?: string;
+  helperText?: string;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
+}
+```
+
+### Card
+
+```typescript
+// Card system
+<Card hover className="cursor-pointer">
+  <Card.Header>
+    <h3>Title</h3>
+    <Badge status="open" />
+  </Card.Header>
+  <Card.Body>
+    <p>Content</p>
+  </Card.Body>
+</Card>
+```
+
+## 📡 API INTEGRATION
+
+```typescript
+// Service pattern
+class RequestService {
+  async getRequests(filters?: RequestFilters): Promise<Request[]>;
+  async createRequest(data: CreateRequestData): Promise<Request>;
+  async updateRequest(id: string, data: UpdateRequestData): Promise<Request>;
+  async deleteRequest(id: string): Promise<void>;
+}
+
+// Custom hooks
+const useRequests = (filters?: RequestFilters) => {
+  const [data, setData] = useState<Request[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  // ... implementation
+  return { data, loading, error, refetch };
+};
+```
+
+## 🎨 STYLING SYSTEM
+
+```css
+/* Component classes */
+.btn-primary {
+  @apply bg-[#B38B59] text-[#FEFEFE] hover:bg-[#9A7A4F] px-4 py-2 rounded-lg;
+}
+
+.btn-secondary {
+  @apply bg-[#113E21] text-[#FEFEFE] hover:bg-[#0F3520] px-4 py-2 rounded-lg;
+}
+
+.card {
+  @apply bg-[#FEFEFE] border border-[#F0F0F0] rounded-lg shadow-sm p-4;
+}
+
+.text-primary {
+  @apply text-[#113E21];
+}
+
+.text-muted {
+  @apply text-[#888888];
+}
+```
+
+## 🎯 KEY FEATURES TO IMPLEMENT
+
+### 1. Authentication
+
+- Login/Register forms
+- Protected routes
+- JWT token management
+- Role-based access
+
+### 2. Request Management
+
+- Create/edit requests
+- Browse requests (with filters)
+- Request details page
+- Status management
+
+### 3. Bid System
+
+- Create bids
+- View bids on requests
+- Accept/reject bids
+- Bid status tracking
+
+### 4. Dashboard
+
+- Buyer dashboard (my requests, received bids)
+- Seller dashboard (available requests, my bids)
+- Statistics cards
+- Recent activity
+
+### 5. Profile Management
+
+- User profile editing
+- Avatar upload
+- Bio and location
+
+## 📱 RESPONSIVE DESIGN
+
+```typescript
+// Mobile-first approach
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  {/* Responsive grid */}
+</div>
+
+// Navigation
+<nav className="md:hidden"> {/* Mobile nav */}
+<aside className="hidden md:block"> {/* Desktop sidebar */}
+```
+
+## 🔄 STATE PATTERNS
+
+```typescript
+// Loading states
+const [loading, setLoading] = useState(false);
+const [error, setError] = useState<string | null>(null);
+
+// Form state
+const useFormState = <T>(initialState: T) => {
+  // ... form handling logic
+  return { values, errors, handleChange, handleSubmit };
+};
+
+// Optimistic updates
+const addRequest = async (newRequest: CreateRequestData) => {
+  setRequests((prev) => [optimisticRequest, ...prev]);
+  try {
+    const created = await requestService.createRequest(newRequest);
+    setRequests((prev) =>
+      prev.map((req) => (req.id === optimisticRequest.id ? created : req))
+    );
+  } catch (error) {
+    setRequests((prev) =>
+      prev.filter((req) => req.id !== optimisticRequest.id)
+    );
+  }
+};
+```
+
+## 🎨 COMPONENT PATTERNS
+
+```typescript
+// Compound components
+const Modal = ({ children, isOpen, onClose }) => { ... };
+Modal.Header = ({ children }) => { ... };
+Modal.Body = ({ children }) => { ... };
+Modal.Footer = ({ children }) => { ... };
+
+// Render props
+const DataFetcher = ({ url, render }) => {
+  // ... data fetching logic
+  return render(data, loading, error);
+};
+
+// Custom hooks
+const useAuth = () => useContext(AuthContext);
+const useToast = () => { /* toast notifications */ };
+```
+
+## 🚀 DEVELOPMENT WORKFLOW
+
+1. **Start with mobile-first design**
+2. **Implement core UI components first**
+3. **Add authentication and routing**
+4. **Build feature components**
+5. **Connect to API endpoints**
+6. **Add loading/error states**
+7. **Implement responsive design**
+8. **Add animations and polish**
+
+## 🎯 QUICK START CHECKLIST
+
+- [ ] Complete UI component library (Button, Input, Card, Modal)
+- [ ] Authentication system with JWT
+- [ ] Request CRUD operations
+- [ ] Bid system
+- [ ] User dashboards
+- [ ] Profile management
+- [ ] Search and filtering
+- [ ] Responsive navigation
+- [ ] Loading and error states
+- [ ] Form validation
+- [ ] Toast notifications
+- [ ] Protected routes
+
+## 📋 NAMING CONVENTIONS
+
+- Components: `PascalCase.tsx`
+- Hooks: `use[Name].ts`
+- Services: `[feature]Service.ts`
+- Types: `[feature].ts`
+- Utils: `camelCase.ts`
+
+## 🎨 BRAND IMPLEMENTATION
+
+- Use `#B38B59` for primary actions (buttons, links)
+- Use `#113E21` for text and navigation
+- Use `#F0F0F0` for backgrounds and subtle borders
+- Use `#FEFEFE` for content areas and cards
