@@ -10,15 +10,18 @@ import {
 } from "./sections";
 import { useDashboard, useDashboardActions } from "./hooks/useDashboard";
 
-const Dashboard: React.FC = () => {
-  const { user } = useAuth();
+interface DashboardProps {
+  userRole?: "buyer" | "seller" | "both";
+}
+
+const Dashboard: React.FC<DashboardProps> = ({ userRole = "buyer" }) => {
   const [activeTab, setActiveTab] = useState<string>(
-    user?.role === "seller" ? "seller" : "buyer"
+    userRole === "seller" ? "seller" : "buyer"
   );
 
   const { buyerData, sellerData, loading, error, refetch } = useDashboard({
-    user,
     activeTab,
+    userRole,
   });
 
   const {
@@ -29,11 +32,19 @@ const Dashboard: React.FC = () => {
   } = useDashboardActions();
 
   if (loading) {
-    return <LoadingSpinner />;
+    return (
+      <div className="min-h-screen bg-[#F0F0F0] flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
   }
 
   if (error) {
-    return <ErrorMessage message={error} onRetry={refetch} />;
+    return (
+      <div className="min-h-screen bg-[#F0F0F0] flex items-center justify-center">
+        <ErrorMessage message={error} onRetry={refetch} />
+      </div>
+    );
   }
 
   return (
@@ -45,7 +56,7 @@ const Dashboard: React.FC = () => {
         />
 
         {/* Navigation Tabs - only show for users with 'both' role */}
-        {user?.role === "both" && (
+        {userRole === "both" && (
           <NavigationTabs activeTab={activeTab} onTabChange={setActiveTab} />
         )}
 
@@ -67,6 +78,15 @@ const Dashboard: React.FC = () => {
             onBrowseRequests={handleBrowseRequests}
             onViewBid={(bid) => handleBidAction("view", bid)}
           />
+        )}
+
+        {/* Show message if no data is available */}
+        {!buyerData && !sellerData && !loading && (
+          <div className="text-center py-12">
+            <p className="text-[#888888] text-lg">
+              No dashboard data available for the selected view.
+            </p>
+          </div>
         )}
       </div>
     </div>
