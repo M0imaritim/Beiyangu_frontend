@@ -1,11 +1,17 @@
 // src/app/auth/register/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "@/context/AuthContext";
-import { RegisterCredentials } from "@/types/auth";
+import apiService from "@/services/api";
+
+interface RegisterCredentials {
+  username: string;
+  email: string;
+  password: string;
+  password_confirm: string;
+}
 
 export default function RegisterPage() {
   const [credentials, setCredentials] = useState<RegisterCredentials>({
@@ -17,15 +23,7 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { register, user } = useAuth();
   const router = useRouter();
-
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (user) {
-      router.push("/dashboard");
-    }
-  }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,14 +38,21 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const result = await register(credentials);
-      if (result.success) {
+      console.log("Attempting registration...");
+      const response = await apiService.postJSON(
+        "/auth/register/",
+        credentials
+      );
+
+      if (response.success) {
+        console.log("Registration successful:", response);
+        // Redirect to dashboard on successful registration
         router.push("/dashboard");
       } else {
-        setError(result.error || "Registration failed");
+        setError(response.error || "Registration failed");
       }
     } catch (err) {
-      console.error(err);
+      console.error("Registration error:", err);
       setError("An unexpected error occurred");
     } finally {
       setLoading(false);

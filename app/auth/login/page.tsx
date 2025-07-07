@@ -1,12 +1,10 @@
-// src/app/auth/login/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "@/context/AuthContext";
+import apiService from "@/services/api";
 
-// Update the LoginCredentials type to use email
 interface LoginCredentials {
   email: string;
   password: string;
@@ -14,21 +12,13 @@ interface LoginCredentials {
 
 export default function LoginPage() {
   const [credentials, setCredentials] = useState<LoginCredentials>({
-    email: "", // Changed from username to email
+    email: "",
     password: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { login, user } = useAuth();
   const router = useRouter();
-
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (user) {
-      router.push("/dashboard");
-    }
-  }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,14 +26,21 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const result = await login(credentials);
-      if (result.success) {
+      console.log(
+        `Attempting login @ ${process.env.NEXT_PUBLIC_API_URL}/auth/login/...`
+      );
+
+      const response = await apiService.postJSON("/auth/login/", credentials);
+
+      if (response.success) {
+        console.log("Login successful:", response);
+        // Redirect to dashboard on successful login
         router.push("/dashboard");
       } else {
-        setError(result.error || "Login failed");
+        setError(response.error || "Login failed");
       }
     } catch (err) {
-      console.error(err);
+      console.error("Login error:", err);
       setError("An unexpected error occurred");
     } finally {
       setLoading(false);
@@ -89,13 +86,13 @@ export default function LoginPage() {
               </label>
               <input
                 id="email"
-                name="email" // Changed from username to email
-                type="email" // Changed from text to email
+                name="email"
+                type="email"
                 required
-                value={credentials.email} // Changed from username to email
+                value={credentials.email}
                 onChange={handleChange}
                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-primary rounded-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-                placeholder="Enter your email address" // Updated placeholder
+                placeholder="Enter your email address"
               />
             </div>
 

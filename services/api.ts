@@ -1,121 +1,153 @@
-// src/services/api.ts
-import axios, { AxiosResponse } from "axios";
-import {
-  LoginCredentials,
-  RegisterCredentials,
-  AuthResponse,
-  ApiResponse,
-} from "@/types/auth";
+const apiService = {
+  get: async function (url: string): Promise<any> {
+    console.log(
+      `Making GET request to: ${process.env.NEXT_PUBLIC_API_URL}${url}`
+    );
 
-// Make sure this points to your Railway backend
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-
-console.log("API_BASE_URL:", API_BASE_URL); // Debug log to verify URL
-
-// Create axios instance with default config
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  withCredentials: true, // Important for httpOnly cookies
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-// Request interceptor to handle common errors
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error("API Error:", error.response?.status, error.response?.data);
-    if (error.response?.status === 401) {
-      // Handle unauthorized - could redirect to login
-      console.log("Unauthorized request");
-    }
-    return Promise.reject(error);
-  }
-);
-
-// Auth API functions
-export const authApi = {
-  // Register new user
-  register: async (credentials: RegisterCredentials): Promise<AuthResponse> => {
     try {
-      const response: AxiosResponse<AuthResponse> = await api.post(
-        "/auth/register/", // Fixed: added /auth/ prefix
-        credentials
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${url}`, {
+        method: "GET",
+        credentials: "include", // Include cookies
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          // If you're using CSRF protection, ensure you're sending the token
+          // 'X-CSRFToken': getCsrfToken(),
+        },
+      });
+
+      console.log("Response status:", response.status);
+      console.log(
+        "Response headers:",
+        Object.fromEntries(response.headers.entries())
       );
-      return response.data;
-    } catch (error: any) {
-      return {
-        success: false,
-        error: error.response?.data?.error || "Registration failed",
-        details: error.response?.data?.details,
-      };
+
+      if (!response.ok) {
+        let errorData = {};
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          console.log("Could not parse error response as JSON");
+        }
+
+        console.error("API error:", {
+          status: response.status,
+          statusText: response.statusText,
+          details: errorData,
+        });
+
+        throw new Error(
+          JSON.stringify({
+            status: response.status,
+            statusText: response.statusText,
+            details: errorData,
+          })
+        );
+      }
+
+      const data = await response.json();
+      console.log("Response data:", data);
+      return data;
+    } catch (error) {
+      console.error("API request failed:", error);
+      throw error;
     }
   },
 
-  // Login user
-  login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
-    try {
-      console.log("Attempting login to:", `${API_BASE_URL}/auth/login/`);
-      const response: AxiosResponse<AuthResponse> = await api.post(
-        "/auth/login/", // Fixed: added /auth/ prefix and trailing slash
-        credentials
-      );
-      return response.data;
-    } catch (error: any) {
-      console.error("Login error:", error);
-      return {
-        success: false,
-        error:
-          error.response?.data?.error ||
-          error.response?.data?.message ||
-          "Login failed",
-      };
-    }
+  post: async function (url: string, data: any): Promise<any> {
+    console.log("post", url, data);
+
+    return new Promise((resolve, reject) => {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}${url}`, {
+        method: "POST",
+        body: data,
+        credentials: "include", // Include cookies
+      })
+        .then((response) => response.json())
+        .then((json) => {
+          console.log("Response:", json);
+          resolve(json);
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
   },
 
-  // Get current user info
-  me: async (): Promise<AuthResponse> => {
-    try {
-      const response: AxiosResponse<AuthResponse> = await api.get("/auth/me/");
-      return response.data;
-    } catch (error: any) {
-      return {
-        success: false,
-        error: error.response?.data?.error || "Failed to get user info",
-      };
-    }
+  postWithoutToken: async function (url: string, data: any): Promise<any> {
+    console.log("postWithoutToken", url, data);
+
+    return new Promise((resolve, reject) => {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}${url}`, {
+        method: "POST",
+        body: data,
+        credentials: "include", // Include cookies
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      })
+        .then((response) => response.json())
+        .then((json) => {
+          // console.log("Response:", json);
+          resolve(json);
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
   },
 
-  // Logout user
-  logout: async (): Promise<ApiResponse> => {
-    try {
-      const response: AxiosResponse<ApiResponse> = await api.post(
-        "/auth/logout/"
-      );
-      return response.data;
-    } catch (error: any) {
-      return {
-        success: false,
-        error: error.response?.data?.error || "Logout failed",
-      };
-    }
-  },
+  // Helper method for JSON POST requests
+  postJSON: async function (url: string, data: any): Promise<any> {
+    console.log("postJSON", url, data);
 
-  // Refresh token
-  refresh: async (): Promise<AuthResponse> => {
     try {
-      const response: AxiosResponse<AuthResponse> = await api.post(
-        "/auth/refresh/"
-      );
-      return response.data;
-    } catch (error: any) {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${url}`, {
+        method: "POST",
+        credentials: "include", // Include cookies
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      console.log("Response status:", response.status);
+
+      if (!response.ok) {
+        let errorData = {};
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          console.log("Could not parse error response as JSON");
+        }
+
+        console.error("API error:", {
+          status: response.status,
+          statusText: response.statusText,
+          details: errorData,
+        });
+
+        // Return error in expected format instead of throwing
+        return {
+          success: false,
+          error: errorData || response.statusText,
+          details: errorData,
+        };
+      }
+
+      const json = await response.json();
+      console.log("Response:", json);
+      return json;
+    } catch (error) {
+      console.error("API request failed:", error);
       return {
         success: false,
-        error: error.response?.data?.error || "Token refresh failed",
+        error: "Network error occurred",
       };
     }
   },
 };
 
-export default api;
+export default apiService;

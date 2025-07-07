@@ -1,20 +1,36 @@
 // src/app/page.tsx
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
+import apiService from "@/services/api";
 
 export default function HomePage() {
-  const { user, loading } = useAuth();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && user) {
-      router.push("/dashboard");
-    }
-  }, [user, loading, router]);
+    // Check if user is already logged in
+    const checkAuth = async () => {
+      try {
+        const response = await apiService.get("/auth/me/");
+        if (response.success && response.user) {
+          setUser(response.user);
+          // Redirect to dashboard if user is authenticated
+          router.push("/dashboard");
+        }
+      } catch (error) {
+        console.log("User not authenticated");
+        // User not authenticated, stay on landing page
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
 
   if (loading) {
     return (
